@@ -3,9 +3,14 @@ package main
 import (
 	"log"
 	"net/http"
+
+	"github.com/TakedaB/digibank-go/internal/repository"
 )
 
 func main() {
+	db := repository.NewPostgresConnection()
+	defer db.Close()
+
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/health", healthCheckHandler)
