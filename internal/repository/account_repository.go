@@ -65,3 +65,10 @@ func (r *AccountRepository) FindAll() ([]model.Account, error) {
 
 	return accounts, nil
 }
+
+func (r *AccountRepository) UpdateBalance(id string, newBalance int64) error {
+	query := `UPDATE accounts SET balance = $1 WHERE id = $2`
+
+	_, err := r.db.Exec(query, newBalance, id)
+	return err
+}

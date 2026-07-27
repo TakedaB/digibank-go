@@ -6,6 +6,7 @@ import (
 
 	"github.com/TakedaB/digibank-go/internal/handler"
 	"github.com/TakedaB/digibank-go/internal/repository"
+	"github.com/TakedaB/digibank-go/internal/service"
 )
 
 func main() {
@@ -15,11 +16,15 @@ func main() {
 	accountRepo := repository.NewAccountRepository(db)
 	accountHandler := handler.NewAccountHandler(accountRepo)
 
+	transferService := service.NewTransferService(accountRepo)
+	transferHandler := handler.NewTransferHandler(transferService)
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", healthCheckHandler)
 	mux.HandleFunc("POST /accounts", accountHandler.Create)
 	mux.HandleFunc("GET /accounts/{id}", accountHandler.FindByID)
 	mux.HandleFunc("GET /accounts", accountHandler.FindAll)
+	mux.HandleFunc("POST /transfers", transferHandler.Transfer)
 
 	log.Println("servidor rodando na porta 8080")
 	if err := http.ListenAndServe(":8080", mux); err != nil {
