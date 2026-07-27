@@ -18,6 +18,8 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", healthCheckHandler)
 	mux.HandleFunc("POST /accounts", accountHandler.Create)
+	mux.HandleFunc("GET /accounts/{id}", accountHandler.FindByID)
+	mux.HandleFunc("GET /accounts", accountHandler.FindAll)
 
 	log.Println("servidor rodando na porta 8080")
 	if err := http.ListenAndServe(":8080", mux); err != nil {

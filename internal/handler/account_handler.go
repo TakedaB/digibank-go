@@ -37,3 +37,27 @@ func (h *AccountHandler) Create(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(account)
 }
+
+func (h *AccountHandler) FindByID(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+
+	account, err := h.repo.FindByID(id)
+	if err != nil {
+		http.Error(w, "conta não encontrada", http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(account)
+}
+
+func (h *AccountHandler) FindAll(w http.ResponseWriter, r *http.Request) {
+	accounts, err := h.repo.FindAll()
+	if err != nil {
+		http.Error(w, "erro ao buscar contas", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(accounts)
+}
