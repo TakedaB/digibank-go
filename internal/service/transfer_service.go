@@ -34,12 +34,5 @@ func (s *TransferService) Transfer(fromID, toID string, amount int64) error {
 	newFromBalance := fromAccount.Balance - amount
 	newToBalance := toAccount.Balance + amount
 
-	if err := s.accountRepo.UpdateBalance(fromID, newFromBalance); err != nil {
-		return err
-	}
-
-	if err := s.accountRepo.UpdateBalance(toID, newToBalance); err != nil {
-		return err
-	}
-	return nil
+	return s.accountRepo.TransferBalance(fromID, newFromBalance, toID, newToBalance)
 }

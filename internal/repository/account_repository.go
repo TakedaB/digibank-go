@@ -72,3 +72,24 @@ func (r *AccountRepository) UpdateBalance(id string, newBalance int64) error {
 	_, err := r.db.Exec(query, newBalance, id)
 	return err
 }
+
+func (r *AccountRepository) TransferBalance(fromID string, fromNewBalance int64, toID string, toNewBalance int64) error {
+	tx, err := r.db.Begin()
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(`UPDATE accounts SET balance = $1 WHERE id = $2`, fromNewBalance, fromID)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	_, err = tx.Exec(`UPDATE accounts SET balance = $1 WHERE id = $2`, toNewBalance, toID)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit()
+}
