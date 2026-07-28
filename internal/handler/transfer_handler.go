@@ -2,18 +2,17 @@ package handler
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
 
-	"github.com/TakedaB/digibank-go/internal/service"
+	"github.com/TakedaB/digibank-go/internal/kafka"
 )
 
 type TransferHandler struct {
-	service *service.TransferService
+	producer *kafka.TransferProducer
 }
 
-func NewTransferHandler(service *service.TransferService) *TransferHandler {
-	return &TransferHandler{service: service}
+func NewTransferHandler(producer *kafka.TransferProducer) *TransferHandler {
+	return &TransferHandler{producer: producer}
 }
 
 type transferRequest struct {
@@ -29,15 +28,17 @@ func (h *TransferHandler) Transfer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.service.Transfer(req.FromAccountID, req.ToAccountID, req.Amount)
-	if err != nil {
-		if errors.Is(err, service.ErrInsufficientBalance) {
-			http.Error(w, "saldo insuficiente", http.StatusUnprocessableEntity)
-			return
-		}
+	msg := kafka.TransferMessage{
+		FromAccountID: req.FromAccountID,
+		ToAccountID:   req.ToAccountID,
+		Amount:        req.Amount,
+	}
+
+	if err := h.producer.Publish(r.Context(), msg); err != nil {
 		http.Error(w, "erro ao processar transferência", http.StatusInternalServerError)
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	w.WriteHeader(http.StatusAccepted)
+	w.Write([]byte(`{"status":"processando"}`))
 }

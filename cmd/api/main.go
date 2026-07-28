@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/TakedaB/digibank-go/internal/handler"
+	"github.com/TakedaB/digibank-go/internal/kafka"
 	"github.com/TakedaB/digibank-go/internal/repository"
-	"github.com/TakedaB/digibank-go/internal/service"
 )
 
 func main() {
@@ -16,8 +16,8 @@ func main() {
 	accountRepo := repository.NewAccountRepository(db)
 	accountHandler := handler.NewAccountHandler(accountRepo)
 
-	transferService := service.NewTransferService(accountRepo)
-	transferHandler := handler.NewTransferHandler(transferService)
+	transferProducer := kafka.NewTransferProducer("localhost: 9092")
+	transferHandler := handler.NewTransferHandler(transferProducer)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", healthCheckHandler)
