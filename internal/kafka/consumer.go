@@ -5,9 +5,10 @@ import (
 	"encoding/json"
 	"log"
 
+	"github.com/segmentio/kafka-go"
+
 	"github.com/TakedaB/digibank-go/internal/repository"
 	"github.com/TakedaB/digibank-go/internal/service"
-	"github.com/segmentio/kafka-go"
 )
 
 type TransferConsumer struct {
@@ -36,7 +37,7 @@ func (c *TransferConsumer) Start(ctx context.Context) {
 	for {
 		m, err := c.reader.ReadMessage(ctx)
 		if err != nil {
-			log.Println("erro ao ler mensagem do kafka", err)
+			log.Println("erro ao ler mensagem do kafka:", err)
 			continue
 		}
 
@@ -46,29 +47,35 @@ func (c *TransferConsumer) Start(ctx context.Context) {
 			continue
 		}
 
-		alreadyProcessed, err := c.transferRepo.IsProcessed(msg.TransferID)
-		if err != nil {
-			log.Println("erro ao checar idempotência:", err)
-			continue
-		}
-
-		if alreadyProcessed {
-			log.Printf("transferência %s já processada, ignorando (mensagem duplicada)\n", msg.TransferID)
-			continue
-		}
-
-		log.Printf("processando transferência: %+v\n", msg)
-
-		if err := c.transferService.Transfer(msg.FromAccountID, msg.ToAccountID, msg.Amount); err != nil {
+		if err := c.ProcessMessage(msg); err != nil {
 			log.Println("erro ao processar transferência:", err)
-			continue
 		}
-
-		if err := c.transferRepo.MarkAsProcessed(msg.TransferID); err != nil {
-			log.Println("erro ao marcar transferência como processada:", err)
-			continue
-		}
-
-		log.Println("transferência processada com sucesso")
 	}
+}
+
+// ProcessMessage aplica a lógica de idempotência e processa a transferência.
+// Extraída do loop principal para permitir testes sem depender do Kafka.
+func (c *TransferConsumer) ProcessMessage(msg TransferMessage) error {
+	alreadyProcessed, err := c.transferRepo.IsProcessed(msg.TransferID)
+	if err != nil {
+		return err
+	}
+
+	if alreadyProcessed {
+		log.Printf("transferência %s já processada, ignorando (mensagem duplicada)\n", msg.TransferID)
+		return nil
+	}
+
+	log.Printf("processando transferência: %+v\n", msg)
+
+	if err := c.transferService.Transfer(msg.FromAccountID, msg.ToAccountID, msg.Amount); err != nil {
+		return err
+	}
+
+	if err := c.transferRepo.MarkAsProcessed(msg.TransferID); err != nil {
+		return err
+	}
+
+	log.Println("transferência processada com sucesso")
+	return nil
 }
