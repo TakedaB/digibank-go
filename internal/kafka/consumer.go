@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 
+	"github.com/TakedaB/digibank-go/internal/repository"
 	"github.com/TakedaB/digibank-go/internal/service"
 	"github.com/segmentio/kafka-go"
 )
@@ -12,9 +13,10 @@ import (
 type TransferConsumer struct {
 	reader          *kafka.Reader
 	transferService *service.TransferService
+	transferRepo    *repository.TransferRepository
 }
 
-func NewTransferConsumer(brokerAddress string, transferService *service.TransferService) *TransferConsumer {
+func NewTransferConsumer(brokerAddress string, transferService *service.TransferService, transferRepo *repository.TransferRepository) *TransferConsumer {
 	reader := kafka.NewReader(kafka.ReaderConfig{
 		Brokers: []string{brokerAddress},
 		Topic:   "transfers",
@@ -24,6 +26,7 @@ func NewTransferConsumer(brokerAddress string, transferService *service.Transfer
 	return &TransferConsumer{
 		reader:          reader,
 		transferService: transferService,
+		transferRepo:    transferRepo,
 	}
 }
 
@@ -43,10 +46,26 @@ func (c *TransferConsumer) Start(ctx context.Context) {
 			continue
 		}
 
+		alreadyProcessed, err := c.transferRepo.IsProcessed(msg.TransferID)
+		if err != nil {
+			log.Println("erro ao checar idempotência:", err)
+			continue
+		}
+
+		if alreadyProcessed {
+			log.Printf("transferência %s já processada, ignorando (mensagem duplicada)\n", msg.TransferID)
+			continue
+		}
+
 		log.Printf("processando transferência: %+v\n", msg)
 
 		if err := c.transferService.Transfer(msg.FromAccountID, msg.ToAccountID, msg.Amount); err != nil {
 			log.Println("erro ao processar transferência:", err)
+			continue
+		}
+
+		if err := c.transferRepo.MarkAsProcessed(msg.TransferID); err != nil {
+			log.Println("erro ao marcar transferência como processada:", err)
 			continue
 		}
 

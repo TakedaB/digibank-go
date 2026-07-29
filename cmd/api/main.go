@@ -23,7 +23,8 @@ func main() {
 	transferProducer := kafka.NewTransferProducer("localhost: 9092")
 	transferHandler := handler.NewTransferHandler(transferProducer)
 
-	transferConsumer := kafka.NewTransferConsumer("localhost:9092", transferService)
+	transferRepo := repository.NewTransferRepository(db)
+	transferConsumer := kafka.NewTransferConsumer("localhost:9092", transferService, transferRepo)
 	go transferConsumer.Start(context.Background())
 
 	mux := http.NewServeMux()

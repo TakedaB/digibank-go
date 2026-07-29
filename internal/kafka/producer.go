@@ -22,6 +22,7 @@ func NewTransferProducer(brokerAddress string) *TransferProducer {
 }
 
 type TransferMessage struct {
+	TransferID    string `json:"transfer_id"`
 	FromAccountID string `json:"from_account_id"`
 	ToAccountID   string `json:"to_account_id"`
 	Amount        int64  `json:"amount"`

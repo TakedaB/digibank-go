@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/google/uuid"
+
 	"github.com/TakedaB/digibank-go/internal/kafka"
 )
 
@@ -28,7 +30,10 @@ func (h *TransferHandler) Transfer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	transferID := uuid.NewString()
+
 	msg := kafka.TransferMessage{
+		TransferID:    transferID,
 		FromAccountID: req.FromAccountID,
 		ToAccountID:   req.ToAccountID,
 		Amount:        req.Amount,
@@ -39,6 +44,10 @@ func (h *TransferHandler) Transfer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusAccepted)
-	w.Write([]byte(`{"status":"processando"}`))
+	json.NewEncoder(w).Encode(map[string]string{
+		"status":      "processando",
+		"transfer_id": transferID,
+	})
 }
