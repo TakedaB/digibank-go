@@ -1,0 +1,117 @@
+{
+  "info": {
+    "_postman_id": "34ba6888-34ff-4281-80b2-f80b706c480d",
+    "name": "Digibank API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "57006900",
+    "_collection_link": "https://go.postman.co/collection/57006900-34ba6888-34ff-4281-80b2-f80b706c480d?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Criar conta",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"owner\": \"Postman Teste\",\r\n  \"balance\": 5000\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/accounts",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "accounts"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Buscar conta por ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/accounts/{{account_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "accounts",
+            "{{account_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Listar contas",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/accounts",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "accounts"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Fazer transferência",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"from_account_id\": \"f8e53440-0c03-4a77-b619-2c4f86c99b51\",\r\n  \"to_account_id\": \"5d260018-0117-4ef2-b032-45bca880d847\",\r\n  \"amount\": 500\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/transfers",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "transfers"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Status da transferência",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/transfers/{{transfer_id}}/status",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "transfers",
+            "{{transfer_id}}",
+            "status"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
