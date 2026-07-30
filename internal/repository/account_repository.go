@@ -93,3 +93,10 @@ func (r *AccountRepository) TransferBalance(fromID string, fromNewBalance int64,
 
 	return tx.Commit()
 }
+
+func (r *AccountRepository) Delete(id string) error {
+	query := `DELETE FROM accounts WHERE id = $1`
+
+	_, err := r.db.Exec(query, id)
+	return err
+}

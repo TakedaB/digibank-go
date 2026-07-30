@@ -19,11 +19,13 @@ func TestTransfer_InsufficientBalance(t *testing.T) {
 	if err != nil {
 		t.Fatalf("erro ao criar conta de origem: %v", err)
 	}
+	t.Cleanup(func() { accountRepo.Delete(fromAccount.ID) })
 
 	toAccount, err := accountRepo.Create("Conta Teste Destino", 0)
 	if err != nil {
 		t.Fatalf("erro ao criar conta de destino: %v", err)
 	}
+	t.Cleanup(func() { accountRepo.Delete(toAccount.ID) })
 
 	//tenta transferir mais do que o saldo permite
 	err = transferService.Transfer(fromAccount.ID, toAccount.ID, 99999)
@@ -44,11 +46,13 @@ func TestTransfer_Success(t *testing.T) {
 	if err != nil {
 		t.Fatalf("erro ao criar conta de origem: %v", err)
 	}
+	t.Cleanup(func() { accountRepo.Delete(fromAccount.ID) })
 
 	toAccount, err := accountRepo.Create("Conta Teste Destino 2", 0)
 	if err != nil {
 		t.Fatalf("erro ao criar conta de destino: %v", err)
 	}
+	t.Cleanup(func() { accountRepo.Delete(toAccount.ID) })
 
 	err = transferService.Transfer(fromAccount.ID, toAccount.ID, 3000)
 	if err != nil {

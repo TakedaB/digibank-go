@@ -22,11 +22,13 @@ func TestProcessMessage_Idempotency(t *testing.T) {
 	if err != nil {
 		t.Fatalf("erro ao criar conta de origem: %v", err)
 	}
+	t.Cleanup(func() { accountRepo.Delete(fromAccount.ID) })
 
 	toAccount, err := accountRepo.Create("Conta Teste Idempotencia Destino", 0)
 	if err != nil {
 		t.Fatalf("erro ao criar conta de destino: %v", err)
 	}
+	t.Cleanup(func() { accountRepo.Delete(toAccount.ID) })
 
 	msg := kafka.TransferMessage{
 		TransferID:    uuid.NewString(),
