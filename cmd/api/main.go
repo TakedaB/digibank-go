@@ -19,11 +19,11 @@ func main() {
 	accountHandler := handler.NewAccountHandler(accountRepo)
 
 	transferService := service.NewTransferService(accountRepo)
-
-	transferProducer := kafka.NewTransferProducer("localhost: 9092")
-	transferHandler := handler.NewTransferHandler(transferProducer)
-
 	transferRepo := repository.NewTransferRepository(db)
+
+	transferProducer := kafka.NewTransferProducer("localhost:9092")
+	transferHandler := handler.NewTransferHandler(transferProducer, transferRepo)
+
 	transferConsumer := kafka.NewTransferConsumer("localhost:9092", transferService, transferRepo)
 	go transferConsumer.Start(context.Background())
 
@@ -33,6 +33,7 @@ func main() {
 	mux.HandleFunc("GET /accounts/{id}", accountHandler.FindByID)
 	mux.HandleFunc("GET /accounts", accountHandler.FindAll)
 	mux.HandleFunc("POST /transfers", transferHandler.Transfer)
+	mux.HandleFunc("GET /transfers/{id}/status", transferHandler.GetStatus)
 
 	log.Println("servidor rodando na porta 8080")
 	if err := http.ListenAndServe(":8080", mux); err != nil {

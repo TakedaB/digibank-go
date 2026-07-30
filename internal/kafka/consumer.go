@@ -69,10 +69,15 @@ func (c *TransferConsumer) ProcessMessage(msg TransferMessage) error {
 	log.Printf("processando transferência: %+v\n", msg)
 
 	if err := c.transferService.Transfer(msg.FromAccountID, msg.ToAccountID, msg.Amount); err != nil {
+		c.transferRepo.UpdateStatus(msg.TransferID, "failed")
 		return err
 	}
 
 	if err := c.transferRepo.MarkAsProcessed(msg.TransferID); err != nil {
+		return err
+	}
+
+	if err := c.transferRepo.UpdateStatus(msg.TransferID, "completed"); err != nil {
 		return err
 	}
 
